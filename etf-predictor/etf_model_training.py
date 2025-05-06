@@ -34,10 +34,6 @@ df = pd.concat([spy, qqq], axis=1)
 # ✅ 3. 결측치 확인 및 제거
 print("\n[결측치 개수]")
 print(df.isnull().sum())
-sns.heatmap(df.isnull(), cbar=False, cmap='viridis')
-plt.title("결측치 히트맵")
-plt.savefig("eda_missing_heatmap.png")
-plt.close()
 
 df.dropna(inplace=True)
 
@@ -55,10 +51,6 @@ df.drop(columns=['SPY_Volume_z', 'QQQ_Volume_z'], inplace=True)
 
 # ✅ 6. 상관관계 시각화
 cor = df[['SPY_return', 'QQQ_return', 'SPY_Close', 'QQQ_Close']].corr()
-sns.heatmap(cor, annot=True, cmap='coolwarm')
-plt.title("📊 상관관계 히트맵")
-plt.savefig("eda_corr_heatmap.png")
-plt.close()
 
 # ✅ 7. 특성 선택
 X = df[['SPY_Close', 'SPY_Volume', 'QQQ_Close', 'SPY_return', 'QQQ_return']]
