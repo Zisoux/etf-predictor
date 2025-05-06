@@ -2,41 +2,28 @@ import streamlit as st
 import numpy as np
 import joblib
 import os
-from sklearn.ensemble import RandomForestClassifier  # 반드시 있어야 함
+from sklearn.ensemble import RandomForestClassifier  # 불러오기용
 
 # ✅ 모델 로드
 model_path = os.path.join(os.path.dirname(__file__), "etf_rf_model.pkl")
 model = joblib.load(model_path)
 
-# ✅ 특성 이름 (훈련할 때 사용한 열)
-feature_names = [
-    "SPY_Open", "SPY_High", "SPY_Low", "SPY_Close", "SPY_Volume",
-    "QQQ_Open", "QQQ_High", "QQQ_Low", "QQQ_Close", "QQQ_Volume",
-    "SPY_return", "QQQ_return"
-]
+# ✅ 간소화된 특성 목록
+feature_names = ['SPY_Close', 'SPY_Volume', 'QQQ_Close', 'SPY_return', 'QQQ_return']
+example_values = [423.8, 75000000, 341.6, 0.0021, 0.0017]
 
-# ✅ 예시 값 (사용자가 참고할 수 있도록 미리 채워줌)
-example_values = [
-    420.5, 425.1, 419.2, 423.8, 75000000,      # SPY
-    340.3, 342.9, 338.8, 341.6, 62000000,      # QQQ
-    0.0021, 0.0017                             # 수익률
-]
-
-# ✅ 앱 UI 시작
-st.title("📈 S&P 500 ETF 상승 예측기")
+# ✅ UI
+st.title("📈 S&P 500 ETF 상승 예측기 (간소화 버전)")
 st.markdown("""
-이 앱은 SPY(미국 S&P 500 ETF)의 다음 날 **상승 여부**를 예측합니다.  
-QQQ(나스닥 100 ETF)와 함께 최근 가격 데이터를 기반으로 작동합니다.
-
-아래에 **현재 또는 예측하고 싶은 날의 데이터**를 입력해 주세요.
+이 앱은 SPY(미국 S&P 500 ETF)의 다음 날 상승 여부를 예측합니다.  
+QQQ(나스닥 100 ETF)와 거래량, 수익률 등 간단한 데이터만 입력하면 결과를 확인할 수 있어요.
 """)
 
-# ✅ 사용자 입력 받기
+# ✅ 사용자 입력
 user_inputs = []
 for i, name in enumerate(feature_names):
-    label = f"{name} ({'가격' if 'Open' in name or 'High' in name or 'Low' in name or 'Close' in name else '수량' if 'Volume' in name else '수익률'})"
-    default = float(example_values[i])
-    value = st.number_input(label, value=default)
+    label = f"{name} ({'가격' if 'Close' in name else '거래량' if 'Volume' in name else '수익률'})"
+    value = st.number_input(label, value=float(example_values[i]))
     user_inputs.append(value)
 
 # ✅ 예측 실행
