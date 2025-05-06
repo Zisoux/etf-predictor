@@ -2,8 +2,8 @@ import streamlit as st
 import numpy as np
 import joblib
 
-# 모델 불러오기
-model = joblib.load("etf_rf_model.pkl")
+# 저장된 모델 불러오기
+model = joblib.load("etf_rf_model.pkl") 
 
 st.title("📈 ETF 수익률 예측기 (S&P 500 기반)")
 
@@ -12,7 +12,7 @@ st.markdown("""
 **S&P 500 ETF(SPY)**가 다음 날 상승할지를 예측합니다.
 """)
 
-# 입력값 생성 함수
+# 사용자 입력
 def user_input_features():
     inputs = []
     for i in range(model.n_features_in_):
@@ -20,11 +20,8 @@ def user_input_features():
         inputs.append(val)
     return np.array(inputs).reshape(1, -1)
 
-# 입력 받기
-user_input = user_input_features()
+features = user_input_features()
 
-# 예측 버튼
 if st.button("📊 예측 실행"):
-    prediction = model.predict(user_input)
-    result = "📈 상승할 가능성이 높습니다." if prediction[0] == 1 else "📉 하락할 가능성이 높습니다."
-    st.success(result)
+    result = model.predict(features)
+    st.write("✅ 예측 결과:", "상승 📈" if result[0] == 1 else "하락 📉")
