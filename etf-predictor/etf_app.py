@@ -13,7 +13,7 @@ feature_names = ['SPY_Close', 'SPY_Volume', 'QQQ_Close', 'SPY_return', 'QQQ_retu
 example_values = [423.8, 75000000, 341.6, 0.0021, 0.0017]
 
 # ✅ 앱 UI 시작
-st.title("📈 S&P 500 ETF 상승 예측기 (간소화 버전)")
+st.title("📈 S&P 500 ETF 상승 예측기")
 
 st.markdown("""
 ### 📌 이 앱은 무엇을 하나요?
