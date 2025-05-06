@@ -10,7 +10,7 @@ model = joblib.load(model_path)
 
 # ✅ 특성 정의 (5개로 축소)
 feature_names = ['SPY_Close', 'SPY_Volume', 'QQQ_Close', 'SPY_return', 'QQQ_return']
-example_values = [423.8, 75000000, 341.6, 0.0021, 0.0017]
+example_values = [563.51, 21540000.45, 485.93, -0.0114, -0.0012]
 
 # ✅ 앱 UI 시작
 st.title("📈 S&P 500 ETF 상승 예측기")
