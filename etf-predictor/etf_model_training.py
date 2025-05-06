@@ -34,7 +34,6 @@ df = pd.concat([spy, qqq], axis=1)
 # ✅ 3. 결측치 확인 및 제거
 print("\n[결측치 개수]")
 print(df.isnull().sum())
-
 df.dropna(inplace=True)
 
 # ✅ 4. 수익률 및 타겟
