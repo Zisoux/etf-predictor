@@ -5,9 +5,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+from scipy.stats import zscore
 import joblib
+import warnings
+warnings.filterwarnings("ignore")
 
 # 🟢 1. 데이터 다운로드
 spy = yf.download("SPY", start="2018-01-01", end="2025-04-30", auto_adjust=False)
@@ -26,27 +29,43 @@ def prepare(df, name):
 
 spy = prepare(spy, "SPY")
 qqq = prepare(qqq, "QQQ")
-df = pd.concat([spy, qqq], axis=1).dropna()
+df = pd.concat([spy, qqq], axis=1)
 
-# 🟢 3. 수익률 및 타겟
+# ✅ 3. 결측치 확인 및 제거
+print("\n[결측치 개수]")
+print(df.isnull().sum())
+sns.heatmap(df.isnull(), cbar=False, cmap='viridis')
+plt.title("결측치 히트맵")
+plt.savefig("eda_missing_heatmap.png")
+plt.close()
+
+df.dropna(inplace=True)
+
+# ✅ 4. 수익률 및 타겟
 df['SPY_return'] = df['SPY_Close'].pct_change()
 df['QQQ_return'] = df['QQQ_Close'].pct_change()
 df['Target'] = (df['SPY_return'].shift(-1) > 0).astype(int)
 df.dropna(inplace=True)
 
-# ✅ 4. EDA (시각화는 파일로 저장)
+# ✅ 5. 이상치 제거 (거래량 기준 z-score)
+for col in ['SPY_Volume', 'QQQ_Volume']:
+    df[f'{col}_z'] = zscore(df[col])
+df = df[(df['SPY_Volume_z'].abs() < 3) & (df['QQQ_Volume_z'].abs() < 3)]
+df.drop(columns=['SPY_Volume_z', 'QQQ_Volume_z'], inplace=True)
+
+# ✅ 6. 상관관계 시각화
 cor = df[['SPY_return', 'QQQ_return', 'SPY_Close', 'QQQ_Close']].corr()
 sns.heatmap(cor, annot=True, cmap='coolwarm')
 plt.title("📊 상관관계 히트맵")
 plt.savefig("eda_corr_heatmap.png")
 plt.close()
 
-# ✅ 5. 특성 선택
+# ✅ 7. 특성 선택
 X = df[['SPY_Close', 'SPY_Volume', 'QQQ_Close', 'SPY_return', 'QQQ_return']]
 y = df["Target"]
 X_train, X_test, y_train, y_test = train_test_split(X, y, shuffle=False, test_size=0.2)
 
-# ✅ 6. 모델 비교
+# ✅ 8. 모델 비교 및 평가
 models = {
     "Logistic Regression": LogisticRegression(max_iter=500),
     "Random Forest": RandomForestClassifier(n_estimators=100, max_depth=10),
@@ -62,7 +81,7 @@ for name, model in models.items():
     print(f"\n📌 {name} 결과:")
     print(classification_report(y_test, y_pred))
 
-# ✅ 7. 가장 정확도가 높은 모델 저장
+# ✅ 9. 최적 모델 선택 및 저장
 best_model_name, best_acc = max(results, key=lambda x: x[1])
 final_model = models[best_model_name]
 joblib.dump(final_model, "etf_rf_model.pkl")
