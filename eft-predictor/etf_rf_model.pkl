@@ -1,0 +1,43 @@
+import yfinance as yf
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+import joblib
+
+# SPY와 QQQ ETF 데이터 다운로드
+spy = yf.download("SPY", start="2018-01-01", end="2024-12-31")
+qqq = yf.download("QQQ", start="2018-01-01", end="2024-12-31")
+
+# 필요한 열 추출 및 접두사 추가
+def prepare_data(df, name):
+    df = df[['Open', 'High', 'Low', 'Close', 'Volume']]
+    df.columns = [f"{name}_{col}" for col in df.columns]
+    return df
+
+spy = prepare_data(spy, 'SPY')
+qqq = prepare_data(qqq, 'QQQ')
+
+# 병합 및 수익률 계산
+df = pd.concat([spy, qqq], axis=1).dropna()
+df['SPY_return'] = df['SPY_Close'].pct_change()
+df['QQQ_return'] = df['QQQ_Close'].pct_change()
+df['Target'] = (df['SPY_return'].shift(-1) > 0).astype(int)
+df.dropna(inplace=True)
+
+# 학습 데이터 구성
+features = df.drop(columns=['Target'])
+target = df['Target']
+X_train, X_test, y_train, y_test = train_test_split(features, target, test_size=0.2, shuffle=False)
+
+# 모델 학습 (RandomForest + GridSearchCV)
+params = {'n_estimators': [100], 'max_depth': [5, 10]}
+model = RandomForestClassifier(random_state=42)
+grid = GridSearchCV(model, param_grid=params, cv=3, n_jobs=-1)
+grid.fit(X_train, y_train)
+
+# 학습된 모델 저장
+joblib.dump(grid.best_estimator_, "etf_rf_model.pkl")
+
+print("✅ 모델 저장 완료: etf_rf_model.pkl")
